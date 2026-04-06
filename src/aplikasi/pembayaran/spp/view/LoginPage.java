@@ -65,7 +65,16 @@ public class LoginPage extends JFrame {
             
             if (logoUrl != null) {
                 BufferedImage logoImg = ImageIO.read(logoUrl);
-                Image scaledLogo = logoImg.getScaledInstance(150, 150, Image.SCALE_SMOOTH);
+                int width = logoImg.getWidth();
+                int height = logoImg.getHeight();
+                int newWidth = 150;
+                int newHeight = 150;
+                if (width > height) {
+                    newHeight = -1;
+                } else {
+                    newWidth = -1;
+                }
+                Image scaledLogo = logoImg.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
                 lblLogo.setIcon(new ImageIcon(scaledLogo));
                 logoLoaded = true;
                 System.out.println("Logo berhasil dimuat!");

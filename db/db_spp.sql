@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS `siswa` (
   `nama_ortu` varchar(100) DEFAULT NULL,
   `nominal_spp` decimal(10,2) NOT NULL DEFAULT '0.00',
   `total_potongan` decimal(10,2) DEFAULT '0.00',
+  `password` varchar(100) DEFAULT NULL COMMENT 'NULL = gunakan NIS sebagai password default',
   `status_siswa` enum('Aktif','Lulus','Pindah','Drop Out') DEFAULT 'Aktif',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`nis`),
@@ -182,20 +183,13 @@ CREATE TABLE IF NOT EXISTS `users` (
   UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table db_spp.users: ~11 rows (approximately)
+-- Dumping data for table db_spp.users: ~3 rows (staff only, no Siswa role)
+-- Siswa login menggunakan NIS mereka (bukan dari tabel users)
 DELETE FROM `users`;
 INSERT INTO `users` (`id`, `username`, `password`, `role`, `nama_lengkap`, `no_telepon`, `is_active`, `created_at`) VALUES
 	(1, 'admin', 'admin123', 'TU', 'Sungadi', '081234567890', 1, '2025-09-25 00:45:19'),
 	(2, 'kepsek', 'kepsek123', 'Kepsek', 'Dr. Ahmad Suryadi, M.Pd', '081234567891', 1, '2025-09-25 00:45:19'),
-	(3, 'bendahara', 'bendahara123', 'Bendahara', 'Siti Rahmawati, S.E', '081234567892', 1, '2025-09-25 00:45:19'),
-	(4, 'siswa_001', 'siswa123', 'Siswa', 'Ahmad Rizky Pratama', '081234567893', 1, '2025-09-25 00:45:19'),
-	(5, 'siswa_002', 'siswa123', 'Siswa', 'Siti Nurhaliza', '081234567894', 0, '2025-09-25 00:45:19'),
-	(6, 'siswa_003', 'siswa123', 'Siswa', 'Budi Santoso', '081234567895', 1, '2025-09-25 00:45:19'),
-	(7, 'amba', 'amba123', 'Siswa', 'Mas Amba', '086944776969', 1, '2025-11-20 15:32:27'),
-	(8, 'Mr. Ironi', 'ironi123', 'Siswa', 'Mr. Ironi S.Coem', '008122600960', 1, '2025-11-20 15:36:02'),
-	(9, 'JPC hama', '123456', 'Bendahara', 'Mochammad Eko Noviansyah', '08777565656', 0, '2025-11-22 12:30:18'),
-	(10, 'test', '123456', 'Kepsek', 'sas', 'asas', 0, '2025-11-22 14:33:40'),
-	(11, 'djahdihqIHI', '123456', 'Kepsek', 'DFE', '12344', 0, '2025-11-22 14:35:57');
+	(3, 'bendahara', 'bendahara123', 'Bendahara', 'Siti Rahmawati, S.E', '081234567892', 1, '2025-09-25 00:45:19');
 
 -- Dumping structure for trigger db_spp.update_potongan_siswa
 SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';

@@ -17,20 +17,20 @@ public class AplikasiPembayaranSPP {
         // Set Look and Feel
         try {
 //            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeel());
-            System.out.println("✅ UI Theme loaded");
+            System.out.println("UI Theme loaded");
         } catch (Exception e) {
-            System.out.println("⚠️ Using default theme");
+            System.out.println("Using default theme");
         }
         
         // Test database connection
         System.out.println("Testing database connection...");
         if (Koneksi.getConnection() != null) {
-            System.out.println("✅ Database connected successfully");
+            System.out.println("Database connected successfully");
 
             // Setup database tables if needed
             Koneksi.setupDatabase();
         } else {
-            System.out.println("❌ Database connection failed");
+            System.out.println("Database connection failed");
             JOptionPane.showMessageDialog(null,
                 "Database connection failed!\n" +
                 "Please check:\n" +
@@ -44,7 +44,7 @@ public class AplikasiPembayaranSPP {
         // Launch application
         SwingUtilities.invokeLater(() -> {
             new LoginPage().setVisible(true);
-            System.out.println("✅ Application launched");
+            System.out.println("Application launched");
         });
     }
 }

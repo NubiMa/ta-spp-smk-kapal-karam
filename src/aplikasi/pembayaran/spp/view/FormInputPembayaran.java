@@ -237,7 +237,7 @@ public class FormInputPembayaran extends JFrame {
         gbc.gridx = 0; gbc.gridy = 10;
         panelForm.add(new JLabel("Metode Bayar: *"), gbc);
 
-        String[] metode = {"Cash", "Transfer", "Kartu Debit"};
+        String[] metode = {"Cash", "QR"};
         cmbMetodePembayaran = new JComboBox<>(metode);
         gbc.gridx = 1; gbc.gridy = 10; gbc.gridwidth = 2;
         panelForm.add(cmbMetodePembayaran, gbc);

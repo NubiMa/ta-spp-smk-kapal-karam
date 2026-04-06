@@ -35,14 +35,11 @@ public class UserController {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ? AND is_active = TRUE";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            // Set parameter untuk prepared statement (hindari SQL injection)
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             
-            // Execute query dan ambil hasilnya
             ResultSet rs = pstmt.executeQuery();
             
-            // Jika data ditemukan, create object User
             if (rs.next()) {
                 User user = new User();
                 user.setUsername(rs.getString("username"));
@@ -54,9 +51,6 @@ public class UserController {
                 
                 System.out.println("✅ Login berhasil: " + user.getNamaLengkap() + " (" + user.getRole() + ")");
                 return user;
-            } else {
-                System.out.println("❌ Login gagal: Username atau password salah");
-                return null;
             }
             
         } catch (SQLException e) {
@@ -64,6 +58,70 @@ public class UserController {
             JOptionPane.showMessageDialog(null, "Error database saat login!", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
+        
+        // ─── Fallback: Login Siswa menggunakan NIS ───────────────────────────
+        // Jika tidak ditemukan di tabel users, coba cocokkan sebagai NIS.
+        // Password yang valid = NIS itu sendiri (default), atau password yang
+        // sudah diubah oleh siswa dan tersimpan di kolom password tabel siswa.
+        User siswaUser = loginSiswaByNis(username, password);
+        if (siswaUser != null) {
+            System.out.println("✅ Login siswa via NIS berhasil: " + siswaUser.getNamaLengkap());
+            return siswaUser;
+        }
+        
+        System.out.println("❌ Login gagal: Username atau password salah");
+        return null;
+    }
+    
+    /**
+     * Login khusus Siswa: cari NIS di tabel siswa, password default = NIS.
+     * Password yang sudah diubah disimpan di kolom siswa.password (jika ada),
+     * atau tetap default NIS selama belum diubah.
+     */
+    private User loginSiswaByNis(String nis, String password) {
+        // Cari siswa berdasarkan NIS. Password default = NIS itu sendiri.
+        // Jika siswa sudah ganti password, tersimpan di kolom siswa.password.
+        String sqlSimple = "SELECT * FROM siswa WHERE nis = ? AND status_siswa = 'Aktif'";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sqlSimple)) {
+            pstmt.setString(1, nis);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                // Cek password: coba baca kolom 'password' jika ada
+                String storedPassword = null;
+                try {
+                    storedPassword = rs.getString("password");
+                } catch (SQLException ex) {
+                    // Kolom password belum ada di tabel siswa, gunakan NIS sebagai default
+                    storedPassword = null;
+                }
+                
+                // Jika belum pernah diubah (null/kosong), password default = NIS
+                if (storedPassword == null || storedPassword.trim().isEmpty()) {
+                    storedPassword = nis;
+                }
+                
+                if (!storedPassword.equals(password)) {
+                    return null; // Password salah
+                }
+                
+                // Buat User object untuk siswa
+                User user = new User();
+                user.setUsername(rs.getString("nis")); // username = NIS
+                user.setPassword(storedPassword);
+                user.setRole("Siswa");
+                user.setNamaLengkap(rs.getString("nama_lengkap"));
+                user.setNoTelepon(rs.getString("no_telepon"));
+                user.setActive(true);
+                return user;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("❌ Error saat login siswa: " + e.getMessage());
+        }
+        
+        return null;
     }
     
     /**
@@ -486,6 +544,55 @@ public class UserController {
             JOptionPane.showMessageDialog(null, "Error saat update user!", "Error", JOptionPane.ERROR_MESSAGE);
         }
         
+        return false;
+    }
+
+    /**
+     * Update password siswa di tabel siswa (bukan users).
+     * Dipanggil dari DashboardSiswa ketika siswa ganti password.
+     */
+    public boolean updateSiswaPassword(String nis, String newPassword) {
+        // Pastikan kolom password ada dulu (ALTER jika belum)
+        // Kita coba langsung UPDATE; jika kolom belum ada akan throw exception
+        // dan kita tangani dengan ALTER TABLE otomatis.
+        String sqlUpdate = "UPDATE siswa SET password = ? WHERE nis = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sqlUpdate)) {
+            pstmt.setString(1, newPassword);
+            pstmt.setString(2, nis);
+            int rows = pstmt.executeUpdate();
+            if (rows > 0) {
+                System.out.println("\u2705 Password siswa berhasil diupdate: " + nis);
+                JOptionPane.showMessageDialog(null, "Password berhasil diubah!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+        } catch (SQLException e) {
+            // Jika kolom 'password' belum ada, tambahkan kolom lalu coba lagi
+            if (e.getMessage() != null && e.getMessage().contains("Unknown column")) {
+                try {
+                    String sqlAlter = "ALTER TABLE siswa ADD COLUMN password VARCHAR(100) DEFAULT NULL";
+                    connection.prepareStatement(sqlAlter).execute();
+                    System.out.println("\u2705 Kolom password berhasil ditambahkan ke tabel siswa");
+                    
+                    // Coba update lagi setelah ALTER
+                    try (PreparedStatement pstmt2 = connection.prepareStatement(sqlUpdate)) {
+                        pstmt2.setString(1, newPassword);
+                        pstmt2.setString(2, nis);
+                        int rows2 = pstmt2.executeUpdate();
+                        if (rows2 > 0) {
+                            System.out.println("\u2705 Password siswa berhasil diupdate setelah ALTER: " + nis);
+                            JOptionPane.showMessageDialog(null, "Password berhasil diubah!", "Sukses", JOptionPane.INFORMATION_MESSAGE);
+                            return true;
+                        }
+                    }
+                } catch (SQLException ex2) {
+                    System.err.println("\u274c Error ALTER TABLE siswa: " + ex2.getMessage());
+                }
+            } else {
+                System.err.println("\u274c Error updateSiswaPassword: " + e.getMessage());
+                JOptionPane.showMessageDialog(null, "Error saat mengubah password!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
         return false;
     }
 }

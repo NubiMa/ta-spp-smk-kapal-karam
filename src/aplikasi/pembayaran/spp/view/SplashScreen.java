@@ -81,16 +81,32 @@ public class SplashScreen extends JFrame {
         topPanel.setOpaque(false); // Transparent supaya gradient keliatan
         GridBagConstraints gbc = new GridBagConstraints();
         
-        // Logo (pake icon default dulu, nanti bisa diganti)
+        // Logo
         logoLabel = new JLabel();
-        logoLabel.setIcon(createLogoIcon());
+        try {
+            ImageIcon icon = new ImageIcon("src/aplikasi/pembayaran/spp/assets/logo.png");
+            int width = icon.getIconWidth();
+            int height = icon.getIconHeight();
+            int newWidth = 120;
+            int newHeight = 120;
+            if (width > height) {
+                newHeight = -1;
+            } else {
+                newWidth = -1;
+            }
+            Image img = icon.getImage().getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+            logoLabel.setIcon(new ImageIcon(img));
+        } catch (Exception e) {
+            System.err.println("Gagal meload logo: " + e.getMessage());
+            logoLabel.setIcon(createLogoIcon());
+        }
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(20, 0, 10, 0);
         topPanel.add(logoLabel, gbc);
         
         // Title aplikasi
-        titleLabel = new JLabel("SPP PAYMENT SYSTEM");
+        titleLabel = new JLabel("SMK KAPAL KARAM");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         titleLabel.setForeground(Color.WHITE);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);

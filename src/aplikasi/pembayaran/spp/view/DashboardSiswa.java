@@ -146,7 +146,6 @@ public class DashboardSiswa extends JFrame {
             String newPassword = new String(newPasswordField.getPassword());
             String confirmNewPassword = new String(confirmNewPasswordField.getPassword());
 
-            // Validate input
             if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmNewPassword.isEmpty()) {
                 JOptionPane.showMessageDialog(this,
                     "Semua field harus diisi!",
@@ -168,7 +167,7 @@ public class DashboardSiswa extends JFrame {
                 return;
             }
 
-            // Verify current password is correct
+            // Verify current password (dibandingkan dengan sesi / NIS jika belum diubah)
             if (!currentUser.getPassword().equals(currentPassword)) {
                 JOptionPane.showMessageDialog(this,
                     "Password saat ini salah!",
@@ -176,21 +175,12 @@ public class DashboardSiswa extends JFrame {
                 return;
             }
 
-            // Update the password
-            User updatedUser = new User();
-            updatedUser.setUsername(currentUser.getUsername());
-            updatedUser.setPassword(newPassword);
-            updatedUser.setRole(currentUser.getRole());
-            updatedUser.setNamaLengkap(currentUser.getNamaLengkap());
-            updatedUser.setNoTelepon(currentUser.getNoTelepon());
-            updatedUser.setActive(currentUser.isActive());
-
-            boolean success = userController.updateProfile(updatedUser, currentUser.getUsername());
+            // Simpan password baru ke tabel siswa (bukan users)
+            boolean success = userController.updateSiswaPassword(currentSiswa.getNis(), newPassword);
             if (success) {
-                // Update current user's password
                 currentUser.setPassword(newPassword);
                 JOptionPane.showMessageDialog(this,
-                    "Password berhasil diubah!",
+                    "Password berhasil diubah!\nGunakan password baru saat login berikutnya.",
                     "Berhasil", JOptionPane.INFORMATION_MESSAGE);
             }
         }
